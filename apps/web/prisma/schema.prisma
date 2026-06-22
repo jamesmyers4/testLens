@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  clerkId   String    @unique
+  email     String    @unique
+  createdAt DateTime  @default(now())
+  projects  Project[]
+  apiKeys   ApiKey[]
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  runs      Run[]
+}
+
+model Run {
+  id            String   @id @default(cuid())
+  externalId    String?
+  runAt         DateTime
+  framework     String
+  environment   String?
+  branch        String?
+  commitHash    String?
+  duration      Int
+  totalTests    Int
+  passed        Int
+  failed        Int
+  skipped       Int
+  flaky         Int
+  schemaVersion String
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id])
+  suites        Suite[]
+  createdAt     DateTime @default(now())
+}
+
+model Suite {
+  id          String  @id @default(cuid())
+  name        String
+  file        String?
+  duration    Int
+  parentSuite String?
+  runId       String
+  run         Run     @relation(fields: [runId], references: [id])
+  tests       Test[]
+}
+
+model Test {
+  id          String       @id @default(cuid())
+  title       String
+  status      String
+  duration    Int
+  retries     Int          @default(0)
+  errorMsg    String?
+  errorStack  String?
+  tags        String[]
+  suiteId     String
+  suite       Suite        @relation(fields: [suiteId], references: [id])
+  attachments Attachment[]
+}
+
+model Attachment {
+  id     String  @id @default(cuid())
+  name   String
+  type   String
+  path   String?
+  base64 String?
+  testId String
+  test   Test    @relation(fields: [testId], references: [id])
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  name       String
+  keyHash    String    @unique
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+}

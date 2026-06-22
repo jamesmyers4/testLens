@@ -166,7 +166,7 @@ Owner fills these in manually — never generate or assume values.
 
 ---
 
-## SESSION 1 — Monorepo Scaffold + Schema Package
+## SESSION 1 — Monorepo Scaffold + Schema Package (DONE)
 
 ### Goal
 
@@ -192,3 +192,28 @@ Initialize the monorepo, scaffold the Next.js app, set up npm workspaces, create
 - Schema types are importable in a throwaway `apps/web/app/test-import.ts` file (delete after verify)
 
 ---
+
+## SESSION 2 — Prisma + Neon + Clerk (CURRENT SESSION)
+
+#### Goal
+
+Wire up the database and authentication. No UI yet — just infrastructure that works and is verified.
+
+Steps
+
+Install Prisma in apps/web, initialize with prisma init
+Write apps/web/prisma/schema.prisma — full model from CONTEXT.md including User, Project, Run, Suite, Test, Attachment, ApiKey
+Owner sets DATABASE_URL in .env.local (Neon connection string) — wait for confirmation before continuing
+Run npx prisma db push to sync schema to Neon
+Create apps/web/lib/prisma.ts singleton client
+Install and configure Clerk: @clerk/nextjs
+Wrap apps/web/app/layout.tsx with <ClerkProvider>
+Add apps/web/middleware.ts protecting all routes except /api/runs (public — CI pipelines call this unauthenticated with API key) and /api/projects/[slug]/badge (public)
+Create placeholder sign-in and sign-up pages at /sign-in and /sign-up using Clerk components
+Run tsc --noEmit — zero errors
+
+Done When
+
+npx prisma studio opens and shows all tables
+Visiting a protected route redirects to /sign-in
+tsc --noEmit passes clean
