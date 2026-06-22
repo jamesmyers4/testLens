@@ -172,31 +172,43 @@ Owner fills these in manually — never generate or assume values.
 
 SESSION 3 — API Key System + POST /api/runs (DONE)
 
-SESSION 4 — Settings Page + API Key UI (CURRENT TASK!)
+SESSION 4 — Settings Page + API Key UI (DONE)
+
+SESSION 5 — Projects (Home + New + Dashboard) (DONE)
+
+SESSION 6 — Upload Page + Run Summary (CURRENT TASK!)
 
 Goal
 
-Build /settings — the only place users manage API keys.
+Build the manual upload flow and the run summary scorecard — the first view users see after a run is ingested.
 
 Steps
 
-Install shadcn/ui into apps/web, add components: button, card, input, table, badge, dialog
-Create apps/web/components/theme-toggle.tsx — toggles dark/light via next-themes, sun/moon icon
-Create apps/web/app/layout.tsx root layout with ThemeProvider, ClerkProvider, dark mode class on <html>
-Create apps/web/app/(auth)/layout.tsx — Clerk-protected, includes nav with theme toggle and user button
-Create apps/web/app/(auth)/settings/page.tsx:
+Create apps/web/components/upload-dropzone.tsx:
 
-Lists existing API keys (name, created, last used) — never shows raw key
-"Create Key" button opens dialog: enter key name → generates key → shows raw key ONCE in a copy-able field with warning it won't be shown again
-"Revoke" button per key with confirmation
+Drag-and-drop zone accepting .json files only
+Validates file is valid TestRunReport JSON client-side before submitting
+Shows error state if schema validation fails
+On success POSTs to /api/runs using the user's first API key (or prompts to create one)
+Redirects to /projects/[slug]/runs/[runId] on success
 
-Wire up Server Actions for create and revoke (no separate API routes needed)
+Create apps/web/app/(auth)/projects/[slug]/upload/page.tsx:
+
+Renders <UploadDropzone />
+Instructions panel explaining manual vs CI flow
+
+Create apps/web/app/(auth)/projects/[slug]/runs/[runId]/page.tsx — run summary:
+
+Scorecard row: total / passed / failed / flaky / skipped — each as a colored stat card
+Meta row: framework badge, environment, branch, commit hash, duration, run date
+Quick-nav tabs linking to /suites /tests /failed /flaky
+Failed tests preview — top 5 failures with error message, link to /failed for full list
+
 Run tsc --noEmit — zero errors
 
 Done When
 
-Can create an API key, see it displayed once, copy it
-Key appears in list with masked value
-Can revoke a key
-Theme toggle works
+Can drag-drop a valid JSON file and be redirected to the run summary
+Run summary shows accurate counts and meta
+Quick-nav tabs are visible and link correctly
 tsc --noEmit passes clean
