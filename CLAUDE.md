@@ -168,52 +168,48 @@ Owner fills these in manually — never generate or assume values.
 
 ## SESSION 1 — Monorepo Scaffold + Schema Package (DONE)
 
-### Goal
+## SESSION 2 — Prisma + Neon + Clerk (DONE)
 
-Initialize the monorepo, scaffold the Next.js app, set up npm workspaces, create the `packages/schema` package with full TypeScript types, and verify everything compiles clean.
+SESSION 3 — API Key System + POST /api/runs (CURRENT TASK!)
 
-### Steps
+Goal
 
-1. Initialize root `package.json` with npm workspaces pointing to `apps/*` and `packages/*`
-2. Create `tsconfig.base.json` at root with strict mode
-3. Scaffold `packages/schema`:
-   - `package.json` with name `@testlens/schema`
-   - `tsconfig.json` extending base
-   - `src/index.ts` exporting all types: `TestRunReport`, `Suite`, `Test`, `Attachment`, `TestStatus`, `Framework`, `Environment`
-4. Scaffold `apps/web` with `create-next-app` — App Router, TypeScript, Tailwind, no ESLint auto-config
-5. Add `@testlens/schema` as a workspace dependency in `apps/web/package.json`
-6. Run `tsc --noEmit` from root — zero errors required before session ends
-7. Verify `packages/schema` types are importable from `apps/web`
-
-### Done When
-
-- `npm install` from root succeeds
-- `tsc --noEmit` from root passes clean
-- Schema types are importable in a throwaway `apps/web/app/test-import.ts` file (delete after verify)
-
----
-
-## SESSION 2 — Prisma + Neon + Clerk (CURRENT SESSION)
-
-#### Goal
-
-Wire up the database and authentication. No UI yet — just infrastructure that works and is verified.
+Build the core ingest endpoint and API key management logic. This is the heart of testLens.
 
 Steps
 
-Install Prisma in apps/web, initialize with prisma init
-Write apps/web/prisma/schema.prisma — full model from CONTEXT.md including User, Project, Run, Suite, Test, Attachment, ApiKey
-Owner sets DATABASE_URL in .env.local (Neon connection string) — wait for confirmation before continuing
-Run npx prisma db push to sync schema to Neon
-Create apps/web/lib/prisma.ts singleton client
-Install and configure Clerk: @clerk/nextjs
-Wrap apps/web/app/layout.tsx with <ClerkProvider>
-Add apps/web/middleware.ts protecting all routes except /api/runs (public — CI pipelines call this unauthenticated with API key) and /api/projects/[slug]/badge (public)
-Create placeholder sign-in and sign-up pages at /sign-in and /sign-up using Clerk components
+Create apps/web/lib/api-key.ts:
+
+generateApiKey() — returns a tlk\_ prefixed random string
+hashApiKey(key: string) — SHA-256 hash using Node crypto
+validateApiKey(raw: string) — looks up hash in DB, returns User or null, updates lastUsedAt
+
+Create apps/web/lib/schema-validator.ts:
+
+Zod schema mirroring TestRunReport from @testlens/schema
+validateRunPayload(body: unknown) — returns parsed payload or throws ZodError
+
+Create apps/web/app/api/runs/route.ts:
+
+POST /api/runs
+Reads Authorization: Bearer <key> header
+Validates API key via validateApiKey
+Validates body via validateRunPayload
+Looks up Project by projectSlug — returns 404 if not found or not owned by key's user
+Persists Run, Suites, Tests, Attachments to DB in a Prisma transaction
+Returns { runId, url } on success
+
+Create apps/web/app/api/runs/[runId]/route.ts:
+
+GET /api/runs/[runId]
+Protected by Clerk session (not API key)
+Returns full run with suites and tests
+
 Run tsc --noEmit — zero errors
 
 Done When
 
-npx prisma studio opens and shows all tables
-Visiting a protected route redirects to /sign-in
+curl -X POST /api/runs with valid API key and valid payload returns { runId, url }
+curl -X POST /api/runs with invalid API key returns 401
+curl -X POST /api/runs with invalid payload returns 400 with Zod errors
 tsc --noEmit passes clean
