@@ -170,46 +170,33 @@ Owner fills these in manually — never generate or assume values.
 
 ## SESSION 2 — Prisma + Neon + Clerk (DONE)
 
-SESSION 3 — API Key System + POST /api/runs (CURRENT TASK!)
+SESSION 3 — API Key System + POST /api/runs (DONE)
+
+SESSION 4 — Settings Page + API Key UI (CURRENT TASK!)
 
 Goal
 
-Build the core ingest endpoint and API key management logic. This is the heart of testLens.
+Build /settings — the only place users manage API keys.
 
 Steps
 
-Create apps/web/lib/api-key.ts:
+Install shadcn/ui into apps/web, add components: button, card, input, table, badge, dialog
+Create apps/web/components/theme-toggle.tsx — toggles dark/light via next-themes, sun/moon icon
+Create apps/web/app/layout.tsx root layout with ThemeProvider, ClerkProvider, dark mode class on <html>
+Create apps/web/app/(auth)/layout.tsx — Clerk-protected, includes nav with theme toggle and user button
+Create apps/web/app/(auth)/settings/page.tsx:
 
-generateApiKey() — returns a tlk\_ prefixed random string
-hashApiKey(key: string) — SHA-256 hash using Node crypto
-validateApiKey(raw: string) — looks up hash in DB, returns User or null, updates lastUsedAt
+Lists existing API keys (name, created, last used) — never shows raw key
+"Create Key" button opens dialog: enter key name → generates key → shows raw key ONCE in a copy-able field with warning it won't be shown again
+"Revoke" button per key with confirmation
 
-Create apps/web/lib/schema-validator.ts:
-
-Zod schema mirroring TestRunReport from @testlens/schema
-validateRunPayload(body: unknown) — returns parsed payload or throws ZodError
-
-Create apps/web/app/api/runs/route.ts:
-
-POST /api/runs
-Reads Authorization: Bearer <key> header
-Validates API key via validateApiKey
-Validates body via validateRunPayload
-Looks up Project by projectSlug — returns 404 if not found or not owned by key's user
-Persists Run, Suites, Tests, Attachments to DB in a Prisma transaction
-Returns { runId, url } on success
-
-Create apps/web/app/api/runs/[runId]/route.ts:
-
-GET /api/runs/[runId]
-Protected by Clerk session (not API key)
-Returns full run with suites and tests
-
+Wire up Server Actions for create and revoke (no separate API routes needed)
 Run tsc --noEmit — zero errors
 
 Done When
 
-curl -X POST /api/runs with valid API key and valid payload returns { runId, url }
-curl -X POST /api/runs with invalid API key returns 401
-curl -X POST /api/runs with invalid payload returns 400 with Zod errors
+Can create an API key, see it displayed once, copy it
+Key appears in list with masked value
+Can revoke a key
+Theme toggle works
 tsc --noEmit passes clean
