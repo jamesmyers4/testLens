@@ -6,7 +6,7 @@ testLens is an open-source test run dashboard built for Selenium shops. It inges
 
 If your team runs Selenium UI tests through xUnit or NUnit and your current "report" is a wall of terminal output or the Visual Studio Test Explorer that only you can see — testLens is for you.
 
-> **Screenshot** — *(upload a real run and add a screenshot here)*
+> **Screenshot**
 
 ---
 
