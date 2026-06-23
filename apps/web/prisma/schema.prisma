@@ -23,7 +23,7 @@ model Project {
   slug      String   @unique
   createdAt DateTime @default(now())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   runs      Run[]
 }
 
@@ -43,7 +43,7 @@ model Run {
   flaky         Int
   schemaVersion String
   projectId     String
-  project       Project  @relation(fields: [projectId], references: [id])
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   suites        Suite[]
   createdAt     DateTime @default(now())
 }
@@ -55,7 +55,7 @@ model Suite {
   duration    Int
   parentSuite String?
   runId       String
-  run         Run     @relation(fields: [runId], references: [id])
+  run         Run     @relation(fields: [runId], references: [id], onDelete: Cascade)
   tests       Test[]
 }
 
@@ -69,7 +69,7 @@ model Test {
   errorStack  String?
   tags        String[]
   suiteId     String
-  suite       Suite        @relation(fields: [suiteId], references: [id])
+  suite       Suite        @relation(fields: [suiteId], references: [id], onDelete: Cascade)
   attachments Attachment[]
 }
 
@@ -80,7 +80,7 @@ model Attachment {
   path   String?
   base64 String?
   testId String
-  test   Test    @relation(fields: [testId], references: [id])
+  test   Test    @relation(fields: [testId], references: [id], onDelete: Cascade)
 }
 
 model ApiKey {
@@ -90,5 +90,5 @@ model ApiKey {
   lastUsedAt DateTime?
   createdAt  DateTime  @default(now())
   userId     String
-  user       User      @relation(fields: [userId], references: [id])
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

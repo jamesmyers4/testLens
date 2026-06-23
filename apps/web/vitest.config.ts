@@ -14,5 +14,6 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     poolOptions: { forks: { singleFork: true } },
+    globalSetup: ['./tests/globalSetup.ts'],
   },
 })
