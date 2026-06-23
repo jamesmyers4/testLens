@@ -8,6 +8,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -21,18 +22,26 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+
       - name: Run tests (xUnit)
-        run: dotnet test --logger "xunit;LogFilePath=TestResults.xml" --results-directory TestResults
+        run: dotnet test --no-build --logger "xunit;LogFilePath=TestResults.xml" --results-directory TestResults
 
       - name: Install testLens xUnit adapter
+        if: always()
         run: npm install -g @testlens/adapter-xunit
 
       - name: Convert and upload results
         if: always()
+        id: upload
         env:
           TESTLENS_API_KEY: ${{ secrets.TESTLENS_API_KEY }}
         run: |
-          testlens-convert \
+          OUTPUT=$(testlens-convert \
             --input TestResults/TestResults.xml \
             --framework xunit \
             --project my-project \
@@ -40,4 +49,19 @@ jobs:
             --branch ${{ github.ref_name }} \
             --commit ${{ github.sha }} \
             --endpoint https://your-testlens.vercel.app/api/runs \
-            --api-key "$TESTLENS_API_KEY"
+            --api-key "$TESTLENS_API_KEY")
+          echo "run_url=$(echo $OUTPUT | jq -r '.url')" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR with run URL
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runUrl = '${{ steps.upload.outputs.run_url }}';
+            const fullUrl = `https://your-testlens.vercel.app${runUrl}`;
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## testLens — Tests Failed\n\nView the full run report: [${fullUrl}](${fullUrl})`
+            });

@@ -182,35 +182,36 @@ SESSION 7 — Suite Breakdown + Test Views (DONE)
 
 SESSION 8 — Adapters (xUnit + NUnit CLI) (DONE)
 
-SESSION 9 — Badge Endpoint + GitHub Actions Example (CURRENT TASK!)
+SESSION 9 — Badge Endpoint + GitHub Actions Example (DONE)
+
+SESSION 10 — Polish + README (CURRENT TASK!)
 
 Goal
 
-Build the README badge endpoint and ship the example GitHub Actions workflow.
+Final pass — empty states, loading states, error boundaries, and a professional README that makes the repo look production-ready.
 
 Steps
 
-Create apps/web/app/api/projects/[slug]/badge/route.ts:
+Audit all pages for missing empty states — add them
+Add loading skeletons to run summary, suite list, and test list pages using shadcn Skeleton
+Add error.tsx boundaries to run-scoped routes
+Add not-found.tsx to project and run routes
+Write README.md at repo root:
 
-GET — no auth required (public)
-Looks up most recent run for project by slug
-Returns SVG shield: label "testLens", message "{passed} passed · {failed} failed · {flaky} flaky"
-Color: green if failed === 0, red if failed > 0, amber if failed === 0 but flaky > 0
-Returns with Content-Type: image/svg+xml and Cache-Control: no-cache
-Returns a "no runs" badge if project has no runs yet
+Project description and tagline
+Badge example (dogfood the badge endpoint)
+Screenshot placeholder (note: add screenshot after first real run)
+Quick start: clone → install → env vars → prisma push → dev
+CI integration section with adapter install + GitHub Actions snippet
+Route reference table
+v2 roadmap section
+Tech stack badges
 
-Create examples/github-actions.yml:
-
-Workflow trigger: push to main, pull_request
-Jobs: checkout → setup dotnet → restore → build → test (outputs XML) → convert with testlens-convert → POST to testLens API
-Uses TESTLENS_API_KEY secret
-Comments on PR with run URL on failure
-
-Run tsc --noEmit — zero errors
+Final tsc --noEmit across entire monorepo — zero errors
 
 Done When
 
-Badge endpoint returns valid SVG for a project with runs
-Badge renders correctly in a markdown preview
-GitHub Actions example is readable and accurate
-tsc --noEmit passes clean
+All pages have empty + loading states
+README looks professional and complete
+Zero TypeScript errors across monorepo
+Owner reviews and approves before any commit
