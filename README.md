@@ -6,6 +6,8 @@ testLens is an open-source test run dashboard built for Selenium shops. It inges
 
 If your team runs Selenium UI tests through xUnit or NUnit and your current "report" is a wall of terminal output or the Visual Studio Test Explorer that only you can see — testLens is for you.
 
+> **Screenshot** — *(upload a real run and add a screenshot here)*
+
 ---
 
 ## Why testLens?
@@ -274,7 +276,7 @@ These features are explicitly planned for future versions:
 
 ## Status
 
-testLens is under active development. Current build status across sessions:
+testLens v1 is feature-complete. All ten build sessions are done.
 
 | Session | Focus | Status |
 |---|---|---|
@@ -285,9 +287,9 @@ testLens is under active development. Current build status across sessions:
 | 5 | Projects home, new project, dashboard | ✅ Complete |
 | 6 | Upload page, run summary scorecard | ✅ Complete |
 | 7 | Suite breakdown, test views, failed, flaky | ✅ Complete |
-| 8 | xUnit + NUnit CLI adapters | 🔄 In progress |
-| 9 | Badge endpoint, GitHub Actions example | ⏳ Planned |
-| 10 | Polish, empty states, README | ⏳ Planned |
+| 8 | xUnit + NUnit CLI adapters | ✅ Complete |
+| 9 | Badge endpoint, GitHub Actions example | ✅ Complete |
+| 10 | Empty states, loading skeletons, error boundaries, README polish | ✅ Complete |
 
 ---
 
