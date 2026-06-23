@@ -1,217 +1,324 @@
-# testLens — CLAUDE.md
+testLens — CLAUDE.md (Test Suite)
 
-## Who You Are
+Who You Are
 
-You are Claude Code, executing build sessions for testLens — a multi-framework test run dashboard for Selenium/xUnit/NUnit shops. You write TypeScript, follow the decisions in CONTEXT.md exactly, and never commit or push without explicit owner instruction. After every file change that includes TypeScript, run `tsc --noEmit` and fix all errors before moving on.
+You are Claude Code, executing test suite build sessions for testLens. You write TypeScript, follow the decisions in CONTEXT.md exactly, and never commit or push without explicit owner instruction. After every file change that includes TypeScript, run tsc --noEmit and fix all errors before moving on. You are building the test suite only — never modify application source files unless fixing a bug surfaced by a test.
 
----
+Absolute Rules
 
-## Absolute Rules
+Never commit or push — owner reviews all changes before any git operation
+Never modify files outside tests/, vitest.config.ts, playwright.config.ts, docker-compose.yml, .github/workflows/, and root package.json scripts
+Run tsc --noEmit after every TypeScript file change
+Never make real network calls to Claude, Stripe, Clerk, or any external service in Vitest tests — mock everything
+Never run k6 against production
+No code comments — clean code only
+If something is ambiguous, stop and ask — do not assume
 
-- Never commit or push — owner reviews all changes before any git operation
-- Never deviate from the route structure, schema, or stack defined in CONTEXT.md
-- Never install a package not listed in this file or approved mid-session
-- Run `tsc --noEmit` after every TypeScript file change
-- If something is ambiguous, stop and ask — do not assume
-- Leave no TypeScript errors unresolved at end of session
-- No code comments — clean code only
+Test Folder Structure (target state)
 
----
+tests/
+api/ ← Vitest + Supertest (route handler tests)
+runs.test.ts ← POST /api/runs, GET /api/runs/[runId]
+upload.test.ts ← POST /api/upload (Clerk session auth)
+badge.test.ts ← GET /api/projects/[slug]/badge
+api-keys.test.ts ← createApiKey, revokeApiKey server actions
+db/ ← Vitest direct Prisma (no HTTP)
+schema.test.ts ← model defaults, field storage
+ownership.test.ts ← cross-user data isolation at ORM layer
+cascade.test.ts ← cascade deletes (Project→Run→Suite→Test)
+e2e/ ← Playwright specs
+upload.spec.ts
+run-summary.spec.ts
+suites.spec.ts
+tests-view.spec.ts
+failed.spec.ts
+flaky.spec.ts
+projects.spec.ts
+settings.spec.ts
+cucumber/ ← Gherkin BDD (Cucumber + Playwright browser)
+features/
+upload.feature
+run-summary.feature
+projects.feature
+settings.feature
+failed-tests.feature
+flaky-tests.feature
+steps/
+upload.steps.ts
+run-summary.steps.ts
+projects.steps.ts
+settings.steps.ts
+failed-tests.steps.ts
+flaky-tests.steps.ts
+support/
+world.ts
+hooks.ts
+cucumber.config.ts
+load/ ← k6 scenarios
+config.ts
+helpers/
+auth.ts
+scenarios/
+ingest.ts
+api-key-auth.ts
+badge.ts
+helpers/ ← shared across all suites
+factories.ts
+auth.ts
+seed.ts
 
-## Repo Structure (target state)
+Package Versions (pin these exactly)
 
-```
-testlens/
-  apps/
-    web/                        ← Next.js 15 App Router
-      app/
-        (auth)/                 ← Clerk-protected layout
-          layout.tsx
-          page.tsx              ← / home, lists projects
-          projects/
-            new/
-              page.tsx
-            [slug]/
-              page.tsx          ← project dashboard, lists runs
-              upload/
-                page.tsx
-              runs/
-                [runId]/
-                  page.tsx      ← run summary
-                  suites/
-                    page.tsx
-                  tests/
-                    page.tsx
-                  failed/
-                    page.tsx
-                  flaky/
-                    page.tsx
-          settings/
-            page.tsx
-        api/
-          runs/
-            route.ts            ← POST /api/runs
-            [runId]/
-              route.ts          ← GET /api/runs/[runId]
-          projects/
-            [slug]/
-              badge/
-                route.ts        ← GET badge SVG
-        layout.tsx              ← root layout, dark mode provider
-        globals.css
-      components/
-        ui/                     ← shadcn/ui components
-        run-summary-card.tsx
-        suite-row.tsx
-        test-row.tsx
-        status-badge.tsx
-        theme-toggle.tsx
-        upload-dropzone.tsx
-      lib/
-        prisma.ts
-        clerk.ts
-        api-key.ts
-        schema-validator.ts
-      prisma/
-        schema.prisma
-      middleware.ts
-  packages/
-    schema/
-      src/
-        index.ts                ← TestRunReport types
-      package.json
-      tsconfig.json
-    adapter-xunit/
-      src/
-        index.ts                ← CLI entry point
-        parser.ts               ← xUnit XML → TestRunReport
-      package.json
-      tsconfig.json
-    adapter-nunit/
-      src/
-        index.ts
-        parser.ts               ← NUnit XML → TestRunReport
-      package.json
-      tsconfig.json
-  examples/
-    github-actions.yml
-  CONTEXT.md
-  CLAUDE.md
-  package.json                  ← monorepo root (npm workspaces)
-  tsconfig.base.json
-```
+vitest: 2.x
+@vitest/coverage-v8: 2.x
+supertest: 7.x
+@types/supertest: 6.x
+@playwright/test: 1.x
+@cucumber/cucumber: 11.x
+@types/k6: 0.x
+fast-xml-parser: 4.x (already installed)
 
----
+Environment Variables
 
-## Package Versions (pin these exactly)
+# apps/web/.env.test
 
-```
-next: 15.x
-react: 19.x
-typescript: 5.x
-prisma: 6.x
-@prisma/client: 6.x
-@clerk/nextjs: 6.x
-tailwindcss: 4.x
-shadcn/ui: latest
-zod: 3.x
-fast-xml-parser: 4.x
-uuid: 10.x
-@types/uuid: 10.x
-```
-
----
-
-## Status Color Map (Tailwind)
-
-| Status   | Class                             |
-| -------- | --------------------------------- |
-| passed   | text-emerald-500 / bg-emerald-500 |
-| failed   | text-red-500 / bg-red-500         |
-| flaky    | text-amber-400 / bg-amber-400     |
-| skipped  | text-slate-400 / bg-slate-400     |
-| duration | text-blue-400                     |
-
----
-
-## Environment Variables
-
-```
-# apps/web/.env.local
-DATABASE_URL=
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
-CLERK_SECRET_KEY=
-NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
-NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
-NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/
-NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
-```
+DATABASE*URL=postgresql://...pooler.neon.tech/testlens-test
+DIRECT_URL=postgresql://...neon.tech/testlens-test
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test*...
+CLERK*SECRET_KEY=sk_test*...
+TEST_CLERK_ID=test_user_id_vitest
+TEST_CLERK_ID_B=test_user_id_vitest_b
+TESTLENS_API_KEY=tlk_test_static_key_for_vitest
 
 Owner fills these in manually — never generate or assume values.
 
----
+Auth Mocking Pattern (Vitest)
 
-## Key Decisions (do not re-litigate these)
+All Vitest tests mock Clerk via static import — never via require():
 
-- Monorepo via npm workspaces — no Turborepo, no Nx
-- Flat suites with optional `parentSuite` string — no nesting
-- `flaky` is a first-class test status
-- `attachments` array is in schema — screenshot viewer UI is v2
-- API-first ingest (`POST /api/runs`) — file upload is fallback
-- Single-user auth via Clerk — no teams or roles in v1
-- API keys hashed before storage — never stored plaintext
-- Dark mode default, light mode toggle via next-themes
-- shadcn/ui components only — no other component library
-- xUnit and NUnit adapters ship in v1 — Playwright adapter is v2
+typescriptimport { auth } from '@clerk/nextjs/server'
+import { vi, type Mock } from 'vitest'
 
----
+vi.mock('@clerk/nextjs/server', () => ({
+auth: vi.fn(),
+}))
 
-## SESSION 1 — Monorepo Scaffold + Schema Package (DONE)
+beforeEach(() => {
+(auth as Mock).mockResolvedValue({ userId: TEST_CLERK_ID })
+})
 
-## SESSION 2 — Prisma + Neon + Clerk (DONE)
+API key auth is tested by setting the Authorization: Bearer header directly on Supertest requests — no mocking needed for that path.
 
-SESSION 3 — API Key System + POST /api/runs (DONE)
+Factory Pattern
 
-SESSION 4 — Settings Page + API Key UI (DONE)
+All test records created via tests/helpers/factories.ts. Factories are typed against Prisma UncheckedCreateInput — a schema drift canary. If a factory throws or fails tsc, a migration introduced a breaking change.
 
-SESSION 5 — Projects (Home + New + Dashboard) (DONE)
+typescriptexport async function projectFactory(userId: string, overrides = {}) {
+return prisma.project.create({
+data: {
+name: 'Test Project',
+slug: `test-project-${Date.now()}`,
+userId,
+...overrides,
+},
+})
+}
 
-SESSION 6 — Upload Page + Run Summary (DONE)
+export async function runFactory(projectId: string, overrides = {}) {
+return prisma.run.create({
+data: {
+runAt: new Date(),
+framework: 'xunit',
+duration: 5000,
+totalTests: 4,
+passed: 2,
+failed: 1,
+skipped: 0,
+flaky: 1,
+schemaVersion: '1.0.0',
+projectId,
+...overrides,
+},
+})
+}
 
-SESSION 7 — Suite Breakdown + Test Views (DONE)
+export async function suiteFactory(runId: string, overrides = {}) {
+return prisma.suite.create({
+data: {
+name: 'AuthTests',
+duration: 1200,
+runId,
+...overrides,
+},
+})
+}
 
-SESSION 8 — Adapters (xUnit + NUnit CLI) (DONE)
+export async function testFactory(suiteId: string, overrides = {}) {
+return prisma.test.create({
+data: {
+title: 'Login_WithValidCredentials_Passes',
+status: 'passed',
+duration: 400,
+retries: 0,
+tags: [],
+suiteId,
+...overrides,
+},
+})
+}
 
-SESSION 9 — Badge Endpoint + GitHub Actions Example (DONE)
+export async function apiKeyFactory(userId: string, overrides = {}) {
+return prisma.apiKey.create({
+data: {
+name: 'Test Key',
+keyHash: 'test-hash-' + Date.now(),
+userId,
+...overrides,
+},
+})
+}
 
-SESSION 10 — Polish + README (CURRENT TASK!)
+Key Architecture Notes
+
+Real DB, not mocked (Vitest). Vitest hits the real Neon test branch (separate from production). Create a test branch in the testLens Neon project and put its connection strings in .env.test.
+
+Docker as alternative DB target. docker-compose.yml spins up postgres:16-alpine on port 5433 with tmpfs storage. Used by test:docker scripts and GitHub Actions CI.
+
+Clerk always mocked (Vitest). Static import pattern above — never real Clerk calls.
+
+API key auth tested directly. POST /api/runs uses Bearer token auth — tests set the header directly on Supertest requests. A test API key is seeded in tests/helpers/seed.ts before the suite runs.
+
+singleFork: true in vitest.config.ts — required permanently. Parallel workers cause race conditions against the real DB.
+
+Cucumber uses standalone playwright package (not @playwright/test) to drive a real browser. parallel: 1 is non-negotiable — all scenarios share the Neon test branch and the same Clerk test user.
+
+k6 does not mock. Load scenarios target a running app instance. App must be running locally before executing any test:load script. Never run against production.
+
+tsconfig architecture for k6. Root tsconfig.json excludes tests/load/ and sets "types": ["node"]. A separate tests/load/tsconfig.json scopes "types": ["k6"] for the load directory only. This prevents @types/k6's global open() from conflicting with other types.
+
+npm Scripts (add to apps/web/package.json)
+
+json{
+"test:api": "vitest run tests/api",
+"test:db": "vitest run tests/db",
+"test:api:watch": "vitest tests/api",
+"test:api:coverage": "vitest run tests/api --coverage",
+"test:docker": "cross-env DATABASE_URL=postgresql://testlens:testlens@localhost:5433/testlens vitest run tests/api tests/db",
+"test:e2e": "playwright test",
+"test:e2e:headed": "playwright test --headed",
+"test:e2e:ui": "playwright test --ui",
+"test:cucumber": "cucumber-js",
+"test:cucumber:smoke": "cucumber-js --tags @smoke",
+"test:cucumber:headed": "HEADLESS=false cucumber-js",
+"test:load": "k6 run tests/load/scenarios/ingest.ts",
+"test:load:auth": "k6 run tests/load/scenarios/api-key-auth.ts",
+"test:load:badge": "k6 run tests/load/scenarios/badge.ts",
+"test:load:all": "npm run test:load && npm run test:load:auth && npm run test:load:badge",
+"test:all": "npm run test:api && npm run test:db && npm run test:e2e",
+"docker:up": "docker-compose up -d postgres-test",
+"docker:down": "docker-compose down"
+}
+
+Tagging Strategy (Cucumber)
+
+TagMeaning@smokeCritical path — upload flow, run summary render@regressionFull suite default — applied to every scenario@settingsAPI key management scenarios@projectsProject create/list scenarios@flakyFlaky test view scenarios@wipWork in progress — never committed passing
+
+k6 Thresholds
+
+Route typep95 response timeError ratePOST /api/runs (ingest)< 800ms< 1%GET /api/projects/[slug]/badge< 200ms< 1%API key auth (invalid tokens)N/A401 rate > 99%
+
+Pre-Session Checklist
+
+bashnpm run db:push:test # after any migration
+npx tsc --noEmit # must return zero errors
+
+# kill dev server if running
+
+# docker: npm run docker:down if a container is already running
+
+SESSION 1 — Vitest Config + Factories + API Key Tests (DONE)
+
+SESSION 2 — API Route Tests (runs + upload + badge) (DONE)
+
+SESSION 3 — DB Integration Tests (DONE)
+
+SESSION 4 — Playwright E2E Suite (CURRENT TASK!)
 
 Goal
 
-Final pass — empty states, loading states, error boundaries, and a professional README that makes the repo look production-ready.
+Build the full Playwright E2E suite covering all major UI flows.
 
 Steps
 
-Audit all pages for missing empty states — add them
-Add loading skeletons to run summary, suite list, and test list pages using shadcn Skeleton
-Add error.tsx boundaries to run-scoped routes
-Add not-found.tsx to project and run routes
-Write README.md at repo root:
+Install @playwright/test and run npx playwright install chromium
+Create apps/web/playwright.config.ts:
 
-Project description and tagline
-Badge example (dogfood the badge endpoint)
-Screenshot placeholder (note: add screenshot after first real run)
-Quick start: clone → install → env vars → prisma push → dev
-CI integration section with adapter install + GitHub Actions snippet
-Route reference table
-v2 roadmap section
-Tech stack badges
+baseURL: 'http://localhost:3000'
+testDir: 'tests/e2e'
+use: { storageState: 'tests/helpers/.auth.json' } — reuse Clerk session
+Single project: chromium only for v1
+webServer block: npm run dev, port 3000, reuse if already running
 
-Final tsc --noEmit across entire monorepo — zero errors
+Create apps/web/tests/e2e/global-setup.ts:
+
+Signs in via Clerk and saves storage state to tests/helpers/.auth.json
+Seeds a test project in the DB
+
+Create apps/web/tests/e2e/projects.spec.ts:
+
+Home page shows project list
+"New Project" navigates to /projects/new
+Creating a project redirects to project dashboard
+Project dashboard shows empty state with upload link when no runs exist
+Project dashboard shows run history after upload
+
+Create apps/web/tests/e2e/upload.spec.ts:
+
+Upload page renders dropzone
+Uploading invalid JSON shows error message
+Uploading valid TestRunReport JSON redirects to run summary
+
+Create apps/web/tests/e2e/run-summary.spec.ts:
+
+Scorecard shows correct passed/failed/flaky/skipped counts
+Meta row shows framework, environment, branch, commit, duration
+Quick-nav tabs link to /suites /tests /failed /flaky
+Failed tests preview shows top 5 failures with error messages
+
+Create apps/web/tests/e2e/suites.spec.ts:
+
+Suite list renders all suites
+Suites sorted by failed count descending
+Expanding a suite shows inline test list
+
+Create apps/web/tests/e2e/tests-view.spec.ts:
+
+All tests render with status badges
+Filter by status updates visible tests
+
+Create apps/web/tests/e2e/failed.spec.ts:
+
+Failed view shows only failed tests
+Error messages visible inline without expanding
+Stack trace visible on expand
+
+Create apps/web/tests/e2e/flaky.spec.ts:
+
+Flaky view shows only flaky tests
+Tests sorted by retry count descending
+
+Create apps/web/tests/e2e/settings.spec.ts:
+
+Settings page renders API key list
+Creating a key shows raw value once with copy button
+Raw value not shown after dialog closes
+Revoking a key removes it from the list
+
+Run tsc --noEmit — zero errors
+Run npm run test:e2e — all tests pass
 
 Done When
 
-All pages have empty + loading states
-README looks professional and complete
-Zero TypeScript errors across monorepo
-Owner reviews and approves before any commit
+All 8 spec files pass clean against a running dev server
+tsc --noEmit passes clean
+.auth.json is in .gitignore
