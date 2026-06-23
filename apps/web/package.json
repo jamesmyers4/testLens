@@ -5,7 +5,25 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start"
+    "start": "next start",
+    "test:api": "dotenv -e .env.test -- vitest run tests/api",
+    "test:db": "dotenv -e .env.test -- vitest run tests/db",
+    "test:api:watch": "dotenv -e .env.test -- vitest tests/api",
+    "test:api:coverage": "dotenv -e .env.test -- vitest run tests/api --coverage",
+    "test:docker": "cross-env DATABASE_URL=postgresql://testlens:testlens@localhost:5433/testlens DIRECT_URL=postgresql://testlens:testlens@localhost:5433/testlens vitest run tests/api tests/db",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "test:cucumber": "cucumber-js",
+    "test:cucumber:smoke": "cucumber-js --tags @smoke",
+    "test:cucumber:headed": "HEADLESS=false cucumber-js",
+    "test:load": "k6 run tests/load/scenarios/ingest.ts",
+    "test:load:auth": "k6 run tests/load/scenarios/api-key-auth.ts",
+    "test:load:badge": "k6 run tests/load/scenarios/badge.ts",
+    "test:load:all": "npm run test:load && npm run test:load:auth && npm run test:load:badge",
+    "test:all": "npm run test:api && npm run test:db && npm run test:e2e",
+    "docker:up": "docker-compose up -d postgres-test",
+    "docker:down": "docker-compose down"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.12.0",
@@ -31,7 +49,13 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/supertest": "^6.0.3",
+    "@vitest/coverage-v8": "^2.1.9",
+    "cross-env": "^10.1.0",
+    "dotenv-cli": "^11.0.0",
+    "supertest": "^7.2.2",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^2.1.9"
   }
 }
