@@ -274,6 +274,14 @@ These features are explicitly planned for future versions:
 
 ---
 
+## Testing
+
+The full test suite documentation — how to run each layer, Docker vs Neon, k6 prerequisites, Cucumber tags, CI setup, and architecture notes — lives in **[TESTING.md](TESTING.md)**.
+
+Quick summary: 7 Vitest API tests, 18 Vitest DB integration tests, 33 Playwright E2E tests, 23 Cucumber BDD scenarios, and 3 k6 load scenarios.
+
+---
+
 ## Status
 
 testLens v1 is feature-complete. All ten build sessions are done.

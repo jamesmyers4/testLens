@@ -246,71 +246,33 @@ SESSION 4 — Playwright E2E Suite (DONE)
 
 SESSION 5 — Cucumber/Gherkin BDD Suite (DONE)
 
-SESSION 6 — k6 Load Tests + GitHub Actions CI (CURRENT TASK!)
+SESSION 6 — k6 Load Tests + GitHub Actions CI (DONE)
+
+SESSION 7 — TESTING.md (CURRENT TASK!)
 
 Goal
 
-Build the three k6 load scenarios and wire up GitHub Actions CI for the full test suite.
+Write a comprehensive TESTING.md at the repo root documenting the full test suite for any developer (or hiring manager) who reads the repo.
 
 Steps
 
-Create apps/web/tests/load/tsconfig.json:
+Create TESTING.md at monorepo root covering:
 
-Extends base, "types": ["k6"], excludes nothing
+Overview table: layer / tool / scope / test count
+Running each suite (all commands from npm scripts)
+Docker setup and when to use Docker vs Neon
+k6 prerequisites and how to run each scenario
+Cucumber tagging strategy
+Architecture notes (real DB, mocking strategy, singleFork, k6 tsconfig isolation)
+Pre-session checklist
+GitHub Actions CI overview
+What's not covered yet (future)
 
-Update root tsconfig.json to exclude tests/load/
-Create apps/web/tests/load/config.ts:
-
-BASE_URL from \_\_ENV
-Shared thresholds per the table above
-rampUp stages: 30s to 10 VUs, hold 1m at 50 VUs, ramp down 30s
-spike stages: jump to 100 VUs in 10s, hold 30s, ramp down 10s
-
-Create apps/web/tests/load/helpers/auth.ts:
-
-authHeaders() — returns Authorization: Bearer from \_\_ENV.TESTLENS_API_KEY
-
-Create apps/web/tests/load/scenarios/ingest.ts:
-
-Ramp load against POST /api/runs with valid TestRunReport payload
-Uses authHeaders()
-Threshold: p95 < 800ms, error rate < 1%
-Uses rampUp stages
-
-Create apps/web/tests/load/scenarios/api-key-auth.ts:
-
-Spike traffic with three failure modes: missing header, malformed Bearer, wrong scheme
-Every response must be 401
-Threshold: checks{type:auth_rejected} rate > 99%
-Uses spike stages
-
-Create apps/web/tests/load/scenarios/badge.ts:
-
-High-frequency GET /api/projects/[slug]/badge — no auth
-Threshold: p95 < 200ms, error rate < 1%
-Uses rampUp stages
-
-Create .github/workflows/test.yml:
-
-Triggers: push to main, pull_request
-vitest job:
-
-Spins up postgres:16-alpine via services block (port 5433, healthcheck)
-Runs prisma db push against it
-Runs npm run test:api && npm run test:db
-Clerk keys from GitHub Actions secrets
-
-e2e job (runs after vitest):
-
-Starts Next.js dev server
-Runs npm run test:e2e
-
-Secrets required: CLERK_SECRET_KEY, NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, DATABASE_URL, DIRECT_URL
-
-Run tsc --noEmit — zero errors across all packages
+Update README.md to link to TESTING.md
+Final tsc --noEmit across entire monorepo — zero errors
 
 Done When
 
-All three k6 scenarios run against local dev server without errors
-GitHub Actions workflow file is valid YAML
-tsc --noEmit passes clean across entire monorepo
+TESTING.md is comprehensive, accurate, and matches the actual suite
+README links to it
+Zero TypeScript errors across monorepo
