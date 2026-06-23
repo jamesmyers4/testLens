@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  vitest:
+    name: Vitest (API + DB)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5433:5432
+        env:
+          POSTGRES_DB: testlens
+          POSTGRES_USER: testlens
+          POSTGRES_PASSWORD: testlens
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://testlens:testlens@localhost:5433/testlens
+      DIRECT_URL: postgresql://testlens:testlens@localhost:5433/testlens
+      TEST_CLERK_ID: test_user_id_vitest
+      TEST_CLERK_ID_B: test_user_id_vitest_b
+      TESTLENS_API_KEY: tlk_test_static_key_for_vitest
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Push schema to test DB
+        run: npx prisma db push --skip-generate
+        working-directory: apps/web
+
+      - name: Run API + DB tests
+        run: npm run test:docker
+        working-directory: apps/web
+
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    needs: vitest
+
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+      TEST_CLERK_ID: test_user_id_vitest
+      TEST_CLERK_ID_B: test_user_id_vitest_b
+      TESTLENS_API_KEY: tlk_test_static_key_for_vitest
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+        working-directory: apps/web

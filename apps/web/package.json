@@ -48,6 +48,7 @@
     "@cucumber/cucumber": "^11.3.0",
     "@playwright/test": "^1.61.0",
     "@tailwindcss/postcss": "^4",
+    "@types/k6": "^0.57.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
