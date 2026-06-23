@@ -1,0 +1,21 @@
+{
+  "name": "@testlens/adapter-xunit",
+  "version": "0.0.1",
+  "description": "CLI adapter: xUnit v2 XML → testLens TestRunReport JSON",
+  "bin": {
+    "testlens-convert": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.0.0"
+  },
+  "devDependencies": {
+    "@testlens/schema": "*",
+    "@types/node": "^20",
+    "typescript": "^5.0.0"
+  }
+}

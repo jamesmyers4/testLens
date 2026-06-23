@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "1.0.0",
+  "runId": "576e0789-6201-4fd1-ac0e-1e1b5e8f3375",
+  "runAt": "2026-06-23T14:00:00.000Z",
+  "framework": "xunit",
+  "duration": 2456,
+  "projectSlug": "test",
+  "suites": [
+    {
+      "name": "Test collection for MyApp.Tests.LoginTests",
+      "file": "MyApp.Tests.dll",
+      "duration": 1234,
+      "tests": [
+        {
+          "id": "0d976cad-163f-4120-bafd-8f1c534f4495",
+          "title": "ValidCredentials_ReturnsSuccess",
+          "status": "passed",
+          "duration": 234,
+          "retries": 0,
+          "tags": [
+            "Auth"
+          ],
+          "attachments": []
+        },
+        {
+          "id": "ef83969e-6255-4bfa-bcbb-4057771e5a88",
+          "title": "InvalidPassword_ReturnsError",
+          "status": "failed",
+          "duration": 456,
+          "retries": 0,
+          "error": {
+            "message": "Assert.Equal() Failure\nExpected: 401\nActual:   200",
+            "stack": "at MyApp.Tests.LoginTests.InvalidPassword_ReturnsError() in C:\\builds\\MyApp.Tests\\LoginTests.cs:line 45"
+          },
+          "tags": [
+            "Auth"
+          ],
+          "attachments": []
+        },
+        {
+          "id": "49c49c5c-3b55-4640-889e-ae6ba563ab56",
+          "title": "ExpiredToken_ReturnsSuccess",
+          "status": "flaky",
+          "duration": 544,
+          "retries": 1,
+          "tags": [
+            "Auth",
+            "Flaky"
+          ],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "Test collection for MyApp.Tests.DataTests",
+      "file": "MyApp.Tests.dll",
+      "duration": 1222,
+      "tests": [
+        {
+          "id": "62ce3a59-94a3-4276-b184-48cd5b206ff6",
+          "title": "SaveRecord_Persists",
+          "status": "passed",
+          "duration": 987,
+          "retries": 0,
+          "tags": [
+            "Database"
+          ],
+          "attachments": []
+        },
+        {
+          "id": "3d33aea7-774b-4a5a-876c-d7ceeacf99a6",
+          "title": "LegacyImport_Skipped",
+          "status": "skipped",
+          "duration": 0,
+          "retries": 0,
+          "tags": [],
+          "attachments": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<test-run id="2" name="MyApp.Tests.dll" fullname="MyApp.Tests.dll" runstate="Runnable"
+          testcasecount="5" result="Failed"
+          start-time="2026-06-23 10:00:00Z" end-time="2026-06-23 10:00:02Z"
+          duration="2.456" total="5" passed="3" failed="1" skipped="1" inconclusive="0" asserts="4">
+  <test-suite type="Assembly" id="2-1" name="MyApp.Tests.dll" fullname="MyApp.Tests.dll"
+              runstate="Runnable" testcasecount="5" result="Failed" duration="2.456">
+    <test-suite type="Namespace" id="2-2" name="MyApp.Tests" fullname="MyApp.Tests" result="Failed">
+      <test-suite type="TestFixture" id="2-3" name="LoginTests" fullname="MyApp.Tests.LoginTests"
+                  runstate="Runnable" testcasecount="3" result="Failed" duration="1.234">
+        <test-case id="2-4" name="ValidCredentials_ReturnsSuccess"
+                   fullname="MyApp.Tests.LoginTests.ValidCredentials_ReturnsSuccess"
+                   classname="MyApp.Tests.LoginTests"
+                   result="Passed" duration="0.234" asserts="1">
+          <properties>
+            <property name="Category" value="Auth" />
+          </properties>
+        </test-case>
+        <test-case id="2-5" name="InvalidPassword_ReturnsError"
+                   fullname="MyApp.Tests.LoginTests.InvalidPassword_ReturnsError"
+                   classname="MyApp.Tests.LoginTests"
+                   result="Failed" duration="0.456" asserts="0">
+          <failure>
+            <message><![CDATA[Expected: 401   But was: 200]]></message>
+            <stack-trace><![CDATA[at MyApp.Tests.LoginTests.InvalidPassword_ReturnsError() in LoginTests.cs:line 45]]></stack-trace>
+          </failure>
+          <properties>
+            <property name="Category" value="Auth" />
+          </properties>
+        </test-case>
+        <test-case id="2-6" name="ExpiredToken_ReturnsSuccess"
+                   fullname="MyApp.Tests.LoginTests.ExpiredToken_ReturnsSuccess"
+                   classname="MyApp.Tests.LoginTests"
+                   result="Passed" duration="0.544" asserts="1" runcount="2">
+          <properties>
+            <property name="Category" value="Auth" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="2-7" name="DataTests" fullname="MyApp.Tests.DataTests"
+                  runstate="Runnable" testcasecount="2" result="Passed" duration="1.222">
+        <test-case id="2-8" name="SaveRecord_Persists"
+                   fullname="MyApp.Tests.DataTests.SaveRecord_Persists"
+                   classname="MyApp.Tests.DataTests"
+                   result="Passed" duration="0.987" asserts="2">
+          <properties>
+            <property name="Category" value="Database" />
+          </properties>
+        </test-case>
+        <test-case id="2-9" name="LegacyImport_Skipped"
+                   fullname="MyApp.Tests.DataTests.LegacyImport_Skipped"
+                   classname="MyApp.Tests.DataTests"
+                   result="Skipped" duration="0">
+          <reason>
+            <message>Legacy import not yet migrated</message>
+          </reason>
+        </test-case>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

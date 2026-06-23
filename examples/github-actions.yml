@@ -1,0 +1,43 @@
+name: Run Tests and Report to testLens
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run tests (xUnit)
+        run: dotnet test --logger "xunit;LogFilePath=TestResults.xml" --results-directory TestResults
+
+      - name: Install testLens xUnit adapter
+        run: npm install -g @testlens/adapter-xunit
+
+      - name: Convert and upload results
+        if: always()
+        env:
+          TESTLENS_API_KEY: ${{ secrets.TESTLENS_API_KEY }}
+        run: |
+          testlens-convert \
+            --input TestResults/TestResults.xml \
+            --framework xunit \
+            --project my-project \
+            --environment ci \
+            --branch ${{ github.ref_name }} \
+            --commit ${{ github.sha }} \
+            --endpoint https://your-testlens.vercel.app/api/runs \
+            --api-key "$TESTLENS_API_KEY"

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<assemblies timestamp="2026-06-23T10:00:00">
+  <assembly name="C:\builds\MyApp.Tests\bin\Debug\net8.0\MyApp.Tests.dll"
+            run-date="2026-06-23" run-time="10:00:00"
+            total="5" passed="3" failed="1" skipped="1" errors="0" time="2.456">
+    <collection name="Test collection for MyApp.Tests.LoginTests" total="3" passed="2" failed="1" skipped="0" time="1.234">
+      <test name="MyApp.Tests.LoginTests.ValidCredentials_ReturnsSuccess"
+            classname="MyApp.Tests.LoginTests"
+            method="ValidCredentials_ReturnsSuccess"
+            time="0.234" result="Pass">
+        <traits>
+          <trait name="Category" value="Auth" />
+        </traits>
+      </test>
+      <test name="MyApp.Tests.LoginTests.InvalidPassword_ReturnsError"
+            classname="MyApp.Tests.LoginTests"
+            method="InvalidPassword_ReturnsError"
+            time="0.456" result="Fail">
+        <failure exception-type="Xunit.Sdk.EqualException">
+          <message><![CDATA[Assert.Equal() Failure
+Expected: 401
+Actual:   200]]></message>
+          <stack-trace><![CDATA[at MyApp.Tests.LoginTests.InvalidPassword_ReturnsError() in C:\builds\MyApp.Tests\LoginTests.cs:line 45]]></stack-trace>
+        </failure>
+        <traits>
+          <trait name="Category" value="Auth" />
+        </traits>
+      </test>
+      <test name="MyApp.Tests.LoginTests.ExpiredToken_ReturnsSuccess"
+            classname="MyApp.Tests.LoginTests"
+            method="ExpiredToken_ReturnsSuccess"
+            time="0.544" result="Pass" retries="1">
+        <traits>
+          <trait name="Category" value="Auth" />
+          <trait name="Category" value="Flaky" />
+        </traits>
+      </test>
+    </collection>
+    <collection name="Test collection for MyApp.Tests.DataTests" total="2" passed="1" failed="0" skipped="1" time="1.222">
+      <test name="MyApp.Tests.DataTests.SaveRecord_Persists"
+            classname="MyApp.Tests.DataTests"
+            method="SaveRecord_Persists"
+            time="0.987" result="Pass">
+        <traits>
+          <trait name="Category" value="Database" />
+        </traits>
+      </test>
+      <test name="MyApp.Tests.DataTests.LegacyImport_Skipped"
+            classname="MyApp.Tests.DataTests"
+            method="LegacyImport_Skipped"
+            time="0" result="Skip">
+        <reason><message>Legacy import not yet migrated</message></reason>
+      </test>
+    </collection>
+  </assembly>
+</assemblies>

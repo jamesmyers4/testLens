@@ -180,39 +180,37 @@ SESSION 6 — Upload Page + Run Summary (DONE)
 
 SESSION 7 — Suite Breakdown + Test Views (DONE)
 
-SESSION 8 — Adapters (xUnit + NUnit CLI) (CURRENT TASK!)
+SESSION 8 — Adapters (xUnit + NUnit CLI) (DONE)
+
+SESSION 9 — Badge Endpoint + GitHub Actions Example (CURRENT TASK!)
 
 Goal
 
-Build both adapter packages as standalone CLI tools that convert XML test output to normalized testLens JSON.
+Build the README badge endpoint and ship the example GitHub Actions workflow.
 
 Steps
 
-Scaffold packages/adapter-xunit:
+Create apps/web/app/api/projects/[slug]/badge/route.ts:
 
-package.json — name @testlens/adapter-xunit, bin entry testlens-convert
-tsconfig.json extending base
-src/parser.ts — parses xUnit v2 XML using fast-xml-parser, maps to TestRunReport
-src/index.ts — CLI entry: reads args (--input, --framework, --project, --environment, --branch, --commit, --out), calls parser, writes JSON or POSTs to endpoint if --endpoint and --api-key provided
+GET — no auth required (public)
+Looks up most recent run for project by slug
+Returns SVG shield: label "testLens", message "{passed} passed · {failed} failed · {flaky} flaky"
+Color: green if failed === 0, red if failed > 0, amber if failed === 0 but flaky > 0
+Returns with Content-Type: image/svg+xml and Cache-Control: no-cache
+Returns a "no runs" badge if project has no runs yet
 
-Scaffold packages/adapter-nunit — identical structure, different XML parser (NUnit 3 XML schema)
-Handle xUnit-specific fields:
+Create examples/github-actions.yml:
 
-<assembly> → suite name
-<test> result attribute → status mapping (Pass/Fail/Skip → passed/failed/skipped)
-No native flaky in xUnit XML — flaky status set only if retry count > 0 and final status is passed
+Workflow trigger: push to main, pull_request
+Jobs: checkout → setup dotnet → restore → build → test (outputs XML) → convert with testlens-convert → POST to testLens API
+Uses TESTLENS_API_KEY secret
+Comments on PR with run URL on failure
 
-Handle NUnit-specific fields:
-
-<test-suite> → suite
-<test-case> result attribute → status mapping
-Same flaky logic as xUnit
-
-Run tsc --noEmit across all packages — zero errors
-Manual test: point each CLI at a sample XML file and verify JSON output matches schema
+Run tsc --noEmit — zero errors
 
 Done When
 
-node packages/adapter-xunit/dist/index.js --input sample.xml --framework xunit --project test --out out.json produces valid TestRunReport JSON
-Same for NUnit adapter
-tsc --noEmit passes clean across monorepo
+Badge endpoint returns valid SVG for a project with runs
+Badge renders correctly in a markdown preview
+GitHub Actions example is readable and accurate
+tsc --noEmit passes clean

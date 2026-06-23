@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "1.0.0",
+  "runId": "5970b35f-4718-43eb-a936-f8a2942b5642",
+  "runAt": "2026-06-23T10:00:00.000Z",
+  "framework": "nunit",
+  "duration": 2456,
+  "projectSlug": "test",
+  "suites": [
+    {
+      "name": "LoginTests",
+      "file": "MyApp.Tests.dll",
+      "duration": 1234,
+      "parentSuite": "MyApp.Tests",
+      "tests": [
+        {
+          "id": "a5c2577e-2c8b-47e2-823b-4ec8b5074afd",
+          "title": "ValidCredentials_ReturnsSuccess",
+          "status": "passed",
+          "duration": 234,
+          "retries": 0,
+          "tags": [
+            "Auth"
+          ],
+          "attachments": []
+        },
+        {
+          "id": "a33c29e8-7690-4d8f-a53a-ee94f078d5c4",
+          "title": "InvalidPassword_ReturnsError",
+          "status": "failed",
+          "duration": 456,
+          "retries": 0,
+          "error": {
+            "message": "Expected: 401   But was: 200",
+            "stack": "at MyApp.Tests.LoginTests.InvalidPassword_ReturnsError() in LoginTests.cs:line 45"
+          },
+          "tags": [
+            "Auth"
+          ],
+          "attachments": []
+        },
+        {
+          "id": "6799dc97-7434-4424-8352-186a64e6fbdc",
+          "title": "ExpiredToken_ReturnsSuccess",
+          "status": "flaky",
+          "duration": 544,
+          "retries": 1,
+          "tags": [
+            "Auth"
+          ],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "DataTests",
+      "file": "MyApp.Tests.dll",
+      "duration": 987,
+      "parentSuite": "MyApp.Tests",
+      "tests": [
+        {
+          "id": "3a03d1e4-e6ad-46df-9feb-53bc1caec343",
+          "title": "SaveRecord_Persists",
+          "status": "passed",
+          "duration": 987,
+          "retries": 0,
+          "tags": [
+            "Database"
+          ],
+          "attachments": []
+        },
+        {
+          "id": "17182265-2a53-4da2-ad04-d00e46d582a2",
+          "title": "LegacyImport_Skipped",
+          "status": "skipped",
+          "duration": 0,
+          "retries": 0,
+          "tags": [],
+          "attachments": []
+        }
+      ]
+    }
+  ]
+}
