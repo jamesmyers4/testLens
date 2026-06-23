@@ -242,83 +242,75 @@ SESSION 2 — API Route Tests (runs + upload + badge) (DONE)
 
 SESSION 3 — DB Integration Tests (DONE)
 
-SESSION 4 — Playwright E2E Suite (CURRENT TASK!)
+SESSION 4 — Playwright E2E Suite (DONE)
+
+SESSION 5 — Cucumber/Gherkin BDD Suite (DONE)
+
+SESSION 6 — k6 Load Tests + GitHub Actions CI (CURRENT TASK!)
 
 Goal
 
-Build the full Playwright E2E suite covering all major UI flows.
+Build the three k6 load scenarios and wire up GitHub Actions CI for the full test suite.
 
 Steps
 
-Install @playwright/test and run npx playwright install chromium
-Create apps/web/playwright.config.ts:
+Create apps/web/tests/load/tsconfig.json:
 
-baseURL: 'http://localhost:3000'
-testDir: 'tests/e2e'
-use: { storageState: 'tests/helpers/.auth.json' } — reuse Clerk session
-Single project: chromium only for v1
-webServer block: npm run dev, port 3000, reuse if already running
+Extends base, "types": ["k6"], excludes nothing
 
-Create apps/web/tests/e2e/global-setup.ts:
+Update root tsconfig.json to exclude tests/load/
+Create apps/web/tests/load/config.ts:
 
-Signs in via Clerk and saves storage state to tests/helpers/.auth.json
-Seeds a test project in the DB
+BASE_URL from \_\_ENV
+Shared thresholds per the table above
+rampUp stages: 30s to 10 VUs, hold 1m at 50 VUs, ramp down 30s
+spike stages: jump to 100 VUs in 10s, hold 30s, ramp down 10s
 
-Create apps/web/tests/e2e/projects.spec.ts:
+Create apps/web/tests/load/helpers/auth.ts:
 
-Home page shows project list
-"New Project" navigates to /projects/new
-Creating a project redirects to project dashboard
-Project dashboard shows empty state with upload link when no runs exist
-Project dashboard shows run history after upload
+authHeaders() — returns Authorization: Bearer from \_\_ENV.TESTLENS_API_KEY
 
-Create apps/web/tests/e2e/upload.spec.ts:
+Create apps/web/tests/load/scenarios/ingest.ts:
 
-Upload page renders dropzone
-Uploading invalid JSON shows error message
-Uploading valid TestRunReport JSON redirects to run summary
+Ramp load against POST /api/runs with valid TestRunReport payload
+Uses authHeaders()
+Threshold: p95 < 800ms, error rate < 1%
+Uses rampUp stages
 
-Create apps/web/tests/e2e/run-summary.spec.ts:
+Create apps/web/tests/load/scenarios/api-key-auth.ts:
 
-Scorecard shows correct passed/failed/flaky/skipped counts
-Meta row shows framework, environment, branch, commit, duration
-Quick-nav tabs link to /suites /tests /failed /flaky
-Failed tests preview shows top 5 failures with error messages
+Spike traffic with three failure modes: missing header, malformed Bearer, wrong scheme
+Every response must be 401
+Threshold: checks{type:auth_rejected} rate > 99%
+Uses spike stages
 
-Create apps/web/tests/e2e/suites.spec.ts:
+Create apps/web/tests/load/scenarios/badge.ts:
 
-Suite list renders all suites
-Suites sorted by failed count descending
-Expanding a suite shows inline test list
+High-frequency GET /api/projects/[slug]/badge — no auth
+Threshold: p95 < 200ms, error rate < 1%
+Uses rampUp stages
 
-Create apps/web/tests/e2e/tests-view.spec.ts:
+Create .github/workflows/test.yml:
 
-All tests render with status badges
-Filter by status updates visible tests
+Triggers: push to main, pull_request
+vitest job:
 
-Create apps/web/tests/e2e/failed.spec.ts:
+Spins up postgres:16-alpine via services block (port 5433, healthcheck)
+Runs prisma db push against it
+Runs npm run test:api && npm run test:db
+Clerk keys from GitHub Actions secrets
 
-Failed view shows only failed tests
-Error messages visible inline without expanding
-Stack trace visible on expand
+e2e job (runs after vitest):
 
-Create apps/web/tests/e2e/flaky.spec.ts:
+Starts Next.js dev server
+Runs npm run test:e2e
 
-Flaky view shows only flaky tests
-Tests sorted by retry count descending
+Secrets required: CLERK_SECRET_KEY, NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, DATABASE_URL, DIRECT_URL
 
-Create apps/web/tests/e2e/settings.spec.ts:
-
-Settings page renders API key list
-Creating a key shows raw value once with copy button
-Raw value not shown after dialog closes
-Revoking a key removes it from the list
-
-Run tsc --noEmit — zero errors
-Run npm run test:e2e — all tests pass
+Run tsc --noEmit — zero errors across all packages
 
 Done When
 
-All 8 spec files pass clean against a running dev server
-tsc --noEmit passes clean
-.auth.json is in .gitignore
+All three k6 scenarios run against local dev server without errors
+GitHub Actions workflow file is valid YAML
+tsc --noEmit passes clean across entire monorepo
