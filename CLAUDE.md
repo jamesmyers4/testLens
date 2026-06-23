@@ -176,39 +176,43 @@ SESSION 4 — Settings Page + API Key UI (DONE)
 
 SESSION 5 — Projects (Home + New + Dashboard) (DONE)
 
-SESSION 6 — Upload Page + Run Summary (CURRENT TASK!)
+SESSION 6 — Upload Page + Run Summary (DONE)
+
+SESSION 7 — Suite Breakdown + Test Views (DONE)
+
+SESSION 8 — Adapters (xUnit + NUnit CLI) (CURRENT TASK!)
 
 Goal
 
-Build the manual upload flow and the run summary scorecard — the first view users see after a run is ingested.
+Build both adapter packages as standalone CLI tools that convert XML test output to normalized testLens JSON.
 
 Steps
 
-Create apps/web/components/upload-dropzone.tsx:
+Scaffold packages/adapter-xunit:
 
-Drag-and-drop zone accepting .json files only
-Validates file is valid TestRunReport JSON client-side before submitting
-Shows error state if schema validation fails
-On success POSTs to /api/runs using the user's first API key (or prompts to create one)
-Redirects to /projects/[slug]/runs/[runId] on success
+package.json — name @testlens/adapter-xunit, bin entry testlens-convert
+tsconfig.json extending base
+src/parser.ts — parses xUnit v2 XML using fast-xml-parser, maps to TestRunReport
+src/index.ts — CLI entry: reads args (--input, --framework, --project, --environment, --branch, --commit, --out), calls parser, writes JSON or POSTs to endpoint if --endpoint and --api-key provided
 
-Create apps/web/app/(auth)/projects/[slug]/upload/page.tsx:
+Scaffold packages/adapter-nunit — identical structure, different XML parser (NUnit 3 XML schema)
+Handle xUnit-specific fields:
 
-Renders <UploadDropzone />
-Instructions panel explaining manual vs CI flow
+<assembly> → suite name
+<test> result attribute → status mapping (Pass/Fail/Skip → passed/failed/skipped)
+No native flaky in xUnit XML — flaky status set only if retry count > 0 and final status is passed
 
-Create apps/web/app/(auth)/projects/[slug]/runs/[runId]/page.tsx — run summary:
+Handle NUnit-specific fields:
 
-Scorecard row: total / passed / failed / flaky / skipped — each as a colored stat card
-Meta row: framework badge, environment, branch, commit hash, duration, run date
-Quick-nav tabs linking to /suites /tests /failed /flaky
-Failed tests preview — top 5 failures with error message, link to /failed for full list
+<test-suite> → suite
+<test-case> result attribute → status mapping
+Same flaky logic as xUnit
 
-Run tsc --noEmit — zero errors
+Run tsc --noEmit across all packages — zero errors
+Manual test: point each CLI at a sample XML file and verify JSON output matches schema
 
 Done When
 
-Can drag-drop a valid JSON file and be redirected to the run summary
-Run summary shows accurate counts and meta
-Quick-nav tabs are visible and link correctly
-tsc --noEmit passes clean
+node packages/adapter-xunit/dist/index.js --input sample.xml --framework xunit --project test --out out.json produces valid TestRunReport JSON
+Same for NUnit adapter
+tsc --noEmit passes clean across monorepo
